@@ -200,8 +200,9 @@
               </div>
 
               <button class="primary-button download-button" id="downloadButton" type="button" disabled>
-                <span aria-hidden="true">⇩</span>
-                <span>친구 카드 저장하기</span>
+                <span class="download-button-icon" aria-hidden="true">⇩</span>
+                <span class="download-button-spinner" aria-hidden="true"></span>
+                <span id="downloadButtonLabel">친구 카드 저장하기</span>
               </button>
               <p class="download-caption">1080 × 1080 PNG 이미지로 저장돼요.</p>
 
@@ -233,11 +234,19 @@
       aria-describedby="saveDialogDescription"
     >
       <button class="dialog-close" id="closeSaveDialog" type="button" aria-label="닫기">×</button>
-      <p class="eyebrow">모바일 저장 도우미</p>
-      <h2 id="saveDialogTitle">이미지를 길게 눌러 저장해 주세요</h2>
-      <p id="saveDialogDescription">인스타그램 안에서 바로 저장되지 않으면, 아래 이미지를 길게 눌러 사진에 저장할 수 있어요.</p>
+      <p class="eyebrow">이미지 다운로드</p>
+      <h2 id="saveDialogTitle">친구 카드 다운로드</h2>
+      <p id="saveDialogDescription">아래 다운로드 버튼을 눌러 PNG 이미지를 저장해 주세요. 바로 저장되지 않으면 이미지를 길게 눌러 저장할 수 있어요.</p>
       <img id="savePreviewImage" alt="저장할 친구 카드 미리보기" />
-      <a class="primary-button" id="saveAgainLink" download="school-friend.png">한번 더 저장하기</a>
+      <a
+        class="primary-button"
+        id="saveDownloadLink"
+        download="school-friend.png"
+        target="_blank"
+        rel="noopener"
+      >
+        다운로드
+      </a>
     </dialog>
 
     <script type="module" src="/src/main.js"></script>

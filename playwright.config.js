@@ -25,6 +25,7 @@ export default defineConfig({
         viewport: { width: 320, height: 568 },
         isMobile: true,
         hasTouch: true,
+        userAgent: devices['Pixel 7'].userAgent,
       },
     },
     {
@@ -34,6 +35,7 @@ export default defineConfig({
         viewport: { width: 667, height: 375 },
         isMobile: true,
         hasTouch: true,
+        userAgent: devices['Pixel 7'].userAgent,
       },
     },
     {

@@ -26,6 +26,18 @@ export function triggerDownload(blob, filename) {
   window.setTimeout(() => URL.revokeObjectURL(url), 12_000)
 }
 
-export function isLikelyInAppBrowser(userAgent = navigator.userAgent) {
-  return /Instagram|FBAN|FBAV|KAKAOTALK|NAVER\(inapp/i.test(userAgent)
+export function isMobileDevice({
+  userAgent = navigator.userAgent,
+  platform = navigator.platform,
+  maxTouchPoints = navigator.maxTouchPoints,
+  userAgentData = navigator.userAgentData,
+} = {}) {
+  if (userAgentData?.mobile === true) return true
+
+  const hasMobileUserAgent =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(userAgent)
+  const isIPadWithDesktopUserAgent =
+    /Mac/i.test(platform) && Number(maxTouchPoints) > 1
+
+  return hasMobileUserAgent || isIPadWithDesktopUserAgent
 }

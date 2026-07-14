@@ -3,7 +3,7 @@ import './styles/game.css'
 import './styles/responsive.css'
 
 import { CATEGORIES, MODES, getTraitForParts, hydrateParts, isValidMode } from './data/parts.js'
-import { canvasToBlob, createDownloadName, isLikelyInAppBrowser, triggerDownload } from './download.js'
+import { canvasToBlob, createDownloadName, isMobileDevice, triggerDownload } from './download.js'
 import { FriendGame } from './game.js'
 import { renderGameCard, renderResultCard } from './renderer.js'
 import { loadLocalState, saveLastMode, saveRecentResult } from './storage.js'
@@ -42,13 +42,14 @@ const elements = {
   nameCounter: document.querySelector('#nameCounter'),
   nameHelp: document.querySelector('#nameHelp'),
   downloadButton: document.querySelector('#downloadButton'),
+  downloadButtonLabel: document.querySelector('#downloadButtonLabel'),
   retryButton: document.querySelector('#retryButton'),
   backToIntroButton: document.querySelector('#backToIntroButton'),
   toast: document.querySelector('#toast'),
   saveDialog: document.querySelector('#saveDialog'),
   closeSaveDialog: document.querySelector('#closeSaveDialog'),
   savePreviewImage: document.querySelector('#savePreviewImage'),
-  saveAgainLink: document.querySelector('#saveAgainLink'),
+  saveDownloadLink: document.querySelector('#saveDownloadLink'),
 }
 
 let activeView = 'intro'
@@ -56,6 +57,7 @@ let currentMode = MODES.MIXED
 let currentResult = null
 let toastTimer = null
 let saveDialogUrl = null
+let isDownloading = false
 
 const localState = loadLocalState()
 if (isValidMode(localState.lastMode)) currentMode = localState.lastMode
@@ -119,7 +121,10 @@ elements.friendName.addEventListener('blur', () => {
 })
 
 elements.downloadButton.addEventListener('click', downloadCurrentCard)
-elements.closeSaveDialog.addEventListener('click', () => elements.saveDialog.close())
+elements.closeSaveDialog.addEventListener('click', closeSaveDialog)
+elements.saveDownloadLink.addEventListener('click', () => {
+  showToast('이미지 다운로드를 시작했어요!')
+})
 elements.saveDialog.addEventListener('close', clearSaveDialogUrl)
 
 document.addEventListener('keydown', (event) => {
@@ -258,7 +263,7 @@ function updateNameState() {
   const name = normalizeFriendName(elements.friendName.value, { trim: true })
   const length = countGraphemes(elements.friendName.value)
   elements.nameCounter.textContent = `${Math.min(length, 12)} / 12`
-  elements.downloadButton.disabled = name.length === 0 || !currentResult
+  elements.downloadButton.disabled = isDownloading || name.length === 0 || !currentResult
   elements.nameHelp.textContent = name
     ? '이름은 이미지에만 들어가며 저장되지 않아요.'
     : '친구 이름을 한 글자 이상 적어 주세요.'
@@ -273,7 +278,7 @@ function updateResultPreview() {
 }
 
 async function downloadCurrentCard() {
-  if (!currentResult) return
+  if (!currentResult || isDownloading) return
   const result = currentResult
   const friendName = normalizeFriendName(elements.friendName.value, { trim: true })
   if (!friendName) {
@@ -282,39 +287,59 @@ async function downloadCurrentCard() {
     return
   }
 
-  const originalLabel = elements.downloadButton.innerHTML
-  elements.downloadButton.disabled = true
-  elements.downloadButton.textContent = '카드를 만드는 중…'
+  const resultAtStart = currentResult
+  isDownloading = true
+  setDownloadButtonLoading(true)
 
   try {
+    await waitForNextPaint()
     await fontReady
     renderResultCard(elements.resultCanvas, result, { friendName })
     const blob = await canvasToBlob(elements.resultCanvas)
     const filename = createDownloadName()
 
-    if (isLikelyInAppBrowser()) {
+    if (activeView !== 'result' || currentResult !== resultAtStart) return
+
+    if (isMobileDevice()) {
       openSaveDialog(blob, filename)
-      showToast('이미지를 길게 눌러 저장할 수 있어요.')
+      showToast('아래 다운로드 버튼을 눌러 저장해 주세요.')
     } else {
       triggerDownload(blob, filename)
-      showToast('친구 카드 저장을 시작했어요!')
+      showToast('친구 카드 다운로드를 시작했어요!')
     }
   } catch (error) {
     console.error(error)
     showToast('카드를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.')
   } finally {
-    elements.downloadButton.innerHTML = originalLabel
+    isDownloading = false
+    setDownloadButtonLoading(false)
     const currentName = normalizeFriendName(elements.friendName.value, { trim: true })
     elements.downloadButton.disabled = activeView !== 'result' || !currentResult || !currentName
   }
+}
+
+function setDownloadButtonLoading(isLoading) {
+  elements.downloadButton.classList.toggle('is-loading', isLoading)
+  elements.downloadButton.disabled = isLoading
+  elements.friendName.disabled = isLoading
+  elements.downloadButtonLabel.textContent = isLoading
+    ? '카드를 만드는 중…'
+    : '친구 카드 저장하기'
+
+  if (isLoading) elements.downloadButton.setAttribute('aria-busy', 'true')
+  else elements.downloadButton.removeAttribute('aria-busy')
+}
+
+function waitForNextPaint() {
+  return new Promise((resolve) => window.requestAnimationFrame(() => resolve()))
 }
 
 function openSaveDialog(blob, filename) {
   clearSaveDialogUrl()
   saveDialogUrl = URL.createObjectURL(blob)
   elements.savePreviewImage.src = saveDialogUrl
-  elements.saveAgainLink.href = saveDialogUrl
-  elements.saveAgainLink.download = filename
+  elements.saveDownloadLink.href = saveDialogUrl
+  elements.saveDownloadLink.download = filename
 
   if (typeof elements.saveDialog.showModal === 'function') {
     elements.saveDialog.showModal()
@@ -323,12 +348,22 @@ function openSaveDialog(blob, filename) {
   }
 }
 
+function closeSaveDialog() {
+  if (typeof elements.saveDialog.close === 'function') {
+    elements.saveDialog.close()
+    return
+  }
+
+  elements.saveDialog.removeAttribute('open')
+  clearSaveDialogUrl()
+}
+
 function clearSaveDialogUrl() {
   if (!saveDialogUrl) return
   URL.revokeObjectURL(saveDialogUrl)
   saveDialogUrl = null
   elements.savePreviewImage.removeAttribute('src')
-  elements.saveAgainLink.removeAttribute('href')
+  elements.saveDownloadLink.removeAttribute('href')
 }
 
 function goToIntro() {

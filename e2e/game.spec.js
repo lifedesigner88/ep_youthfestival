@@ -1,5 +1,31 @@
 import { expect, test } from '@playwright/test'
 
+const STORAGE_KEY = 'epYouthFestival:friendMaker:v1'
+const SEEDED_STATE = {
+  lastMode: 'mixed',
+  recentResult: {
+    mode: 'mixed',
+    partIds: {
+      face: 'boy-face-1',
+      eyes: 'girl-eyes-1',
+      nose: 'boy-nose-1',
+      mouth: 'girl-mouth-1',
+      hair: 'boy-hair-1',
+    },
+    createdAt: '2026-07-14T00:00:00.000Z',
+  },
+}
+
+async function openReadyResult(page, url = './') {
+  await page.addInitScript(
+    ({ key, state }) => localStorage.setItem(key, JSON.stringify(state)),
+    { key: STORAGE_KEY, state: SEEDED_STATE },
+  )
+  await page.goto(url)
+  await page.getByRole('button', { name: '최근에 만든 친구 다시 보기' }).click()
+  await page.getByLabel('누구를 닮았나요?').fill('은평이')
+}
+
 test('세 모드 카드는 한 번 누르면 바로 게임을 시작한다', async ({ page }) => {
   const modes = [
     ['남학생 모습', '남학생 모습으로 조합 중'],
@@ -59,12 +85,29 @@ test('다섯 번 멈춰 친구를 완성하고 PNG를 저장한다', async ({ pa
   const downloadButton = page.getByRole('button', { name: '친구 카드 저장하기' })
   await expect(downloadButton).toBeEnabled()
 
-  const downloadPromise = page.waitForEvent('download')
-  await downloadButton.click()
+  let downloadPromise
+  let mobileDialog = null
+  if (testInfo.project.name === 'desktop-chrome') {
+    downloadPromise = page.waitForEvent('download')
+    await downloadButton.click()
+    await expect(page.locator('#saveDialog')).not.toBeVisible()
+  } else {
+    await downloadButton.click()
+    mobileDialog = page.getByRole('dialog', { name: '친구 카드 다운로드' })
+    await expect(mobileDialog).toBeVisible()
+    const downloadLink = mobileDialog.getByRole('link', { name: '다운로드', exact: true })
+    downloadPromise = page.waitForEvent('download')
+    await downloadLink.click()
+  }
+
   const download = await downloadPromise
   expect(download.suggestedFilename()).toMatch(/^school-friend-\d{8}-\d{6}\.png$/)
   const path = await download.path()
   expect(path).toBeTruthy()
+  if (mobileDialog) {
+    await mobileDialog.getByRole('button', { name: '닫기' }).click()
+    await expect(mobileDialog).not.toBeVisible()
+  }
 
   const storedState = await page.evaluate(() => localStorage.getItem('epYouthFestival:friendMaker:v1'))
   expect(storedState).not.toContain('은평이')
@@ -98,31 +141,71 @@ test('게임 중 다른 버튼의 키보드 동작을 가로채지 않는다', a
   await expect(page.locator('body')).toHaveAttribute('data-view', 'intro')
 })
 
-test('인스타그램 인앱 브라우저에서는 길게 누르기 저장 화면을 연다', async ({ browser }, testInfo) => {
+test('스마트폰은 앱 종류와 관계없이 같은 다운로드 팝업을 연다', async ({ browser }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chrome')
 
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    isMobile: true,
-    hasTouch: true,
-    userAgent:
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Instagram 390.0.0',
-  })
-  const page = await context.newPage()
-  await page.goto(String(testInfo.project.use.baseURL))
-  await page.getByRole('button', { name: /랜덤으로 떠올리기/ }).click()
+  const userAgents = [
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Instagram 390.0.0',
+    'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Mobile KAKAOTALK 26.5.0',
+  ]
 
-  const stopButton = page.getByRole('button', { name: /멈추기/ })
-  for (let step = 1; step <= 5; step += 1) {
-    await stopButton.click()
-    if (step < 5) await expect(stopButton).toBeEnabled()
+  for (const userAgent of userAgents) {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+      userAgent,
+    })
+    const page = await context.newPage()
+    await openReadyResult(page, String(testInfo.project.use.baseURL))
+    await page.getByRole('button', { name: '친구 카드 저장하기' }).click()
+
+    const dialog = page.getByRole('dialog', { name: '친구 카드 다운로드' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog).not.toContainText(/인스타그램|카카오톡|페이스북|네이버/)
+    await expect(dialog.locator('img')).toHaveAttribute('src', /^blob:/)
+    await expect.poll(() => dialog.locator('img').evaluate((image) => image.naturalWidth)).toBe(1080)
+    const downloadLink = dialog.getByRole('link', { name: '다운로드', exact: true })
+    await expect(downloadLink).toHaveAttribute('href', /^blob:/)
+    await expect(downloadLink).toHaveAttribute('download', /^school-friend-\d{8}-\d{6}\.png$/)
+    await context.close()
   }
+})
 
-  await page.getByLabel('누구를 닮았나요?').fill('은평이')
-  await page.getByRole('button', { name: '친구 카드 저장하기' }).click()
-  const dialog = page.getByRole('dialog', { name: '이미지를 길게 눌러 저장해 주세요' })
-  await expect(dialog).toBeVisible()
-  await expect(dialog.locator('img')).toHaveAttribute('src', /^blob:/)
-  await expect.poll(() => dialog.locator('img').evaluate((image) => image.naturalWidth)).toBe(1080)
-  await context.close()
+test('카드를 만드는 동안 저장 버튼에 로딩 스피너를 표시한다', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chrome')
+
+  await page.addInitScript(() => {
+    const nativeToBlob = HTMLCanvasElement.prototype.toBlob
+    HTMLCanvasElement.prototype.toBlob = function holdCardBlob(callback, type, quality) {
+      const canvas = this
+      window.__cardBlobPending = true
+      window.__releaseCardBlob = () => {
+        window.__cardBlobPending = false
+        nativeToBlob.call(canvas, callback, type, quality)
+      }
+    }
+  })
+  await openReadyResult(page)
+
+  const downloadButton = page.locator('#downloadButton')
+  await downloadButton.click()
+  await expect.poll(() => page.evaluate(() => window.__cardBlobPending)).toBe(true)
+  await expect(downloadButton).toBeDisabled()
+  await expect(downloadButton).toHaveAttribute('aria-busy', 'true')
+  await expect(downloadButton).toHaveAccessibleName('카드를 만드는 중…')
+  await expect(downloadButton.locator('.download-button-spinner')).toBeVisible()
+  await expect(page.getByLabel('누구를 닮았나요?')).toBeDisabled()
+  await expect(downloadButton.locator('.download-button-spinner')).toHaveCSS(
+    'animation-name',
+    'download-spinner',
+  )
+  await expect(page.locator('#saveDialog')).not.toBeVisible()
+
+  await page.evaluate(() => window.__releaseCardBlob())
+  await expect(page.getByRole('dialog', { name: '친구 카드 다운로드' })).toBeVisible()
+  await expect(downloadButton).not.toHaveAttribute('aria-busy')
+  await expect(downloadButton).toHaveAccessibleName('친구 카드 저장하기')
+  await expect(page.getByLabel('누구를 닮았나요?')).toBeEnabled()
 })

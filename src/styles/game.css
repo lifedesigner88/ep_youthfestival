@@ -354,6 +354,35 @@
   box-shadow: 6px 8px 0 var(--ink);
 }
 
+.download-button.is-loading:disabled {
+  cursor: progress;
+  opacity: 1;
+  filter: none;
+}
+
+.download-button-spinner {
+  width: 22px;
+  height: 22px;
+  display: none;
+  flex: 0 0 auto;
+  border: 3px solid rgba(255, 250, 240, 0.42);
+  border-top-color: var(--paper-light);
+  border-radius: 50%;
+  animation: download-spinner 720ms linear infinite;
+}
+
+.download-button.is-loading .download-button-icon {
+  display: none;
+}
+
+.download-button.is-loading .download-button-spinner {
+  display: block;
+}
+
+@keyframes download-spinner {
+  to { transform: rotate(360deg); }
+}
+
 .download-caption {
   margin: 10px 0 0;
   color: var(--ink-soft);
