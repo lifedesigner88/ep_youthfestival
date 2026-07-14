@@ -58,20 +58,49 @@ const PART_INDEX = new Map(
   ),
 )
 
-export const TRAITS = Object.freeze([
-  '공책 낙서 장인',
-  '쉬는 시간 운동장 대장',
-  '준비물 척척 박사',
-  '급식 시간 행복 요정',
-  '발표할 때 손 번쩍 친구',
-  '문방구 신상 수집가',
-  '짝꿍 웃음 버튼',
-  '알림장 정리의 달인',
-  '컴퓨터실 자리 선점왕',
-  '체육 시간 에너지 대장',
-  '쉬는 시간 만화가',
-  '반장 선거 응원 단장',
+// 아래 배열의 순서는 결과 별명의 일부입니다.
+// 순서를 바꾸면 기존 얼굴의 별명도 바뀌므로 추가·수정 시 매핑 호환성을 검토해야 합니다.
+const TRAIT_SCENES = Object.freeze([
+  '우리 반의',
+  '쉬는 시간의',
+  '운동장의',
+  '급식 시간의',
+  '컴퓨터실의',
+  '문방구 앞의',
+  '공책 속의',
+  '소풍날의',
+  '방과 후의',
+  '모둠 활동의',
 ])
+
+const TRAIT_MOODS = Object.freeze([
+  '신나는',
+  '다정한',
+  '유쾌한',
+  '든든한',
+  '야무진',
+  '씩씩한',
+  '반짝이는',
+  '호기심 많은',
+  '재치 있는',
+  '명랑한',
+])
+
+const TRAIT_ROLES = Object.freeze([
+  '웃음 요정',
+  '놀이 대장',
+  '응원 단장',
+  '아이디어 박사',
+  '척척 달인',
+  '추억 수집가',
+  '마음 지킴이',
+  '이야기꾼',
+  '행복 메이커',
+  '상상 탐험가',
+])
+
+export const TRAIT_COMBINATION_COUNT =
+  TRAIT_SCENES.length * TRAIT_MOODS.length * TRAIT_ROLES.length
 
 export function isValidMode(mode) {
   return Object.values(MODES).includes(mode)
@@ -128,13 +157,38 @@ export function hydrateParts(partIds) {
   return Object.fromEntries(entries)
 }
 
-export function getTraitForParts(parts) {
-  const signature = CATEGORIES.map(({ key }) => parts[key]?.id ?? '').join('|')
-  let hash = 0
-  for (let index = 0; index < signature.length; index += 1) {
-    hash = (hash * 31 + signature.charCodeAt(index)) >>> 0
+function getPartStyleIndex(part) {
+  if (!part || !Number.isInteger(part.index) || part.index < 0 || part.index > 4) {
+    throw new Error('Invalid character part')
   }
-  return TRAITS[hash % TRAITS.length]
+
+  if (part.source === MODES.BOY) return part.index
+  if (part.source === MODES.GIRL) return part.index + 5
+  throw new Error('Invalid character part source')
+}
+
+export function getTraitIndexForParts(parts) {
+  const face = getPartStyleIndex(parts?.face)
+  const eyes = getPartStyleIndex(parts?.eyes)
+  const nose = getPartStyleIndex(parts?.nose)
+  const mouth = getPartStyleIndex(parts?.mouth)
+  const hair = getPartStyleIndex(parts?.hair)
+
+  // 랜덤 모드의 100,000개 조합에서 1,000개 인덱스가 각각 100번씩 나온다.
+  // 난수·시간·모드를 쓰지 않아 같은 다섯 파츠는 항상 같은 인덱스를 갖는다.
+  const baseIndex =
+    (241 * face + 497 * eyes + 100 * nose + 10 * mouth + hair) %
+    TRAIT_COMBINATION_COUNT
+  return (137 * baseIndex + 211) % TRAIT_COMBINATION_COUNT
+}
+
+export function getTraitForParts(parts) {
+  const traitIndex = getTraitIndexForParts(parts)
+  const sceneIndex = Math.floor(traitIndex / 100)
+  const moodIndex = Math.floor(traitIndex / 10) % 10
+  const roleIndex = traitIndex % 10
+
+  return `${TRAIT_SCENES[sceneIndex]} ${TRAIT_MOODS[moodIndex]} ${TRAIT_ROLES[roleIndex]}`
 }
 
 export function getCombinationCount(mode) {

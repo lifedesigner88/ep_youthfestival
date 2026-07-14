@@ -30,7 +30,6 @@ export function saveRecentResult(result) {
   const recentResult = {
     mode: result.mode,
     partIds: { ...result.partIds },
-    trait: result.trait,
     createdAt: result.createdAt,
   }
   writeState({ ...current, lastMode: result.mode, recentResult })
@@ -38,8 +37,14 @@ export function saveRecentResult(result) {
 
 function validateRecentResult(result) {
   if (!result || !isValidMode(result.mode) || !hydrateParts(result.partIds)) return null
-  if (typeof result.trait !== 'string' || typeof result.createdAt !== 'string') return null
-  return result
+  if (typeof result.createdAt !== 'string') return null
+
+  // 별명은 파츠에서 항상 다시 계산한다. 이전 버전이 저장한 trait은 의도적으로 버린다.
+  return {
+    mode: result.mode,
+    partIds: { ...result.partIds },
+    createdAt: result.createdAt,
+  }
 }
 
 function writeState(state) {

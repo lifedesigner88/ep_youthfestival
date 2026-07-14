@@ -104,7 +104,11 @@ elements.recentButton.addEventListener('click', () => {
   }
 
   currentMode = state.recentResult.mode
-  showResult({ ...state.recentResult, parts })
+  showResult({
+    ...state.recentResult,
+    parts,
+    trait: getTraitForParts(parts),
+  })
 })
 
 elements.friendName.addEventListener('input', handleNameInput)

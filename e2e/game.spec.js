@@ -50,6 +50,8 @@ test('다섯 번 멈춰 친구를 완성하고 PNG를 저장한다', async ({ pa
 
   await expect(page.locator('body')).toHaveAttribute('data-view', 'result')
   await expect(page.getByRole('heading', { name: '친구가 완성됐어요' })).toBeVisible()
+  const nickname = await page.locator('#traitLabel').textContent()
+  expect(nickname?.trim().split(/\s+/).length).toBeGreaterThanOrEqual(3)
 
   const friendName = page.getByLabel('누구를 닮았나요?')
   await friendName.fill('은평이')
@@ -66,6 +68,11 @@ test('다섯 번 멈춰 친구를 완성하고 PNG를 저장한다', async ({ pa
 
   const storedState = await page.evaluate(() => localStorage.getItem('epYouthFestival:friendMaker:v1'))
   expect(storedState).not.toContain('은평이')
+  expect(storedState).not.toContain('trait')
+
+  await page.getByRole('button', { name: '모드 다시 고르기' }).click()
+  await page.getByRole('button', { name: '최근에 만든 친구 다시 보기' }).click()
+  await expect(page.locator('#traitLabel')).toHaveText(nickname.trim())
   expect(pageErrors).toEqual([])
 })
 
