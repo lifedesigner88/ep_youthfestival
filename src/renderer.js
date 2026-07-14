@@ -19,12 +19,16 @@ const COLORS = Object.freeze({
 const SKIN_TONES = ['#f5cba5', '#efbd94', '#e7ad82', '#f1c39f', '#d99c73']
 const HAIR_TONES = ['#3d3030', '#4d3937', '#27384a', '#6a4634', '#2f2d38']
 
-export function renderGameCard(canvas, parts, { currentCategory = 'face' } = {}) {
+export function renderGameCard(
+  canvas,
+  parts,
+  { currentCategory = 'face', visibleCount = 1 } = {},
+) {
   const ctx = prepareCanvas(canvas, GAME_PREVIEW_SIZE)
   drawNotebookPaper(ctx)
   drawTopLabel(ctx, '공책 속 우리 반 친구 만들기')
-  drawCharacter(ctx, parts)
-  drawGameFooter(ctx, parts, currentCategory)
+  drawCharacter(ctx, parts, { visibleCount })
+  drawGameFooter(ctx, parts, currentCategory, visibleCount)
 }
 
 export function renderResultCard(canvas, result, { friendName = '' } = {}) {
@@ -145,7 +149,7 @@ function drawTopLabel(ctx, text) {
   ctx.restore()
 }
 
-function drawCharacter(ctx, parts) {
+function drawCharacter(ctx, parts, { visibleCount = CATEGORIES.length } = {}) {
   const facePart = parts.face
   const hairPart = parts.hair
   const skinTone = SKIN_TONES[(facePart.index + (facePart.source === 'girl' ? 2 : 0)) % SKIN_TONES.length]
@@ -154,14 +158,14 @@ function drawCharacter(ctx, parts) {
   ctx.save()
   drawCharacterShadow(ctx)
   drawShoulders(ctx, parts, skinTone)
-  drawHairBack(ctx, hairPart, hairTone)
+  if (visibleCount >= 5) drawHairBack(ctx, hairPart, hairTone)
   drawEars(ctx, skinTone)
   drawFace(ctx, facePart, skinTone)
-  drawCheeks(ctx, parts)
-  drawEyes(ctx, parts.eyes)
-  drawNose(ctx, parts.nose)
-  drawMouth(ctx, parts.mouth)
-  drawHairFront(ctx, hairPart, hairTone)
+  if (visibleCount >= 4) drawCheeks(ctx, parts)
+  if (visibleCount >= 2) drawEyes(ctx, parts.eyes)
+  if (visibleCount >= 3) drawNose(ctx, parts.nose)
+  if (visibleCount >= 4) drawMouth(ctx, parts.mouth)
+  if (visibleCount >= 5) drawHairFront(ctx, hairPart, hairTone)
   ctx.restore()
 }
 
@@ -176,8 +180,7 @@ function drawCharacterShadow(ctx) {
 }
 
 function drawShoulders(ctx, parts, skinTone) {
-  const colorIndex =
-    (parts.face.index + parts.eyes.index + parts.hair.index + (parts.hair.source === 'girl' ? 1 : 0)) % 4
+  const colorIndex = (parts.face.index + (parts.face.source === 'girl' ? 1 : 0)) % 4
   const shirtColors = ['#6e91b4', '#d67b72', '#5e806e', '#d2a444']
 
   ctx.save()
@@ -292,7 +295,8 @@ function drawFace(ctx, part, skinTone) {
 }
 
 function drawCheeks(ctx, parts) {
-  const showCheeks = (parts.eyes.index + parts.mouth.index) % 2 === 0
+  const showCheeks =
+    (parts.eyes.index + (parts.eyes.source === 'girl' ? 1 : 0)) % 2 === 0
   if (!showCheeks) return
 
   ctx.save()
@@ -762,7 +766,7 @@ function drawHairFront(ctx, part, color) {
   ctx.restore()
 }
 
-function drawGameFooter(ctx, parts, currentCategory) {
+function drawGameFooter(ctx, parts, currentCategory, visibleCount) {
   ctx.save()
   ctx.translate(138, 806)
   ctx.rotate(-0.008)
@@ -784,7 +788,9 @@ function drawGameFooter(ctx, parts, currentCategory) {
 
   ctx.fillStyle = COLORS.inkSoft
   ctx.font = `700 25px ${HAND_FONT}`
-  const partNames = CATEGORIES.map(({ key }) => parts[key].name).join(' · ')
+  const partNames = CATEGORIES.slice(0, visibleCount)
+    .map(({ key }) => parts[key].name)
+    .join(' · ')
   fitText(ctx, partNames, 35, 163, 730, 25, 18)
   ctx.restore()
 }

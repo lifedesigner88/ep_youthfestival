@@ -30,8 +30,20 @@ test('다섯 번 멈춰 친구를 완성하고 PNG를 저장한다', async ({ pa
   await page.screenshot({ path: testInfo.outputPath('game.png'), fullPage: true })
 
   const stopButton = page.getByRole('button', { name: /멈추기/ })
+  const stages = [
+    ['face', '얼굴 멈추기'],
+    ['face eyes', '눈 멈추기'],
+    ['face eyes nose', '코 멈추기'],
+    ['face eyes nose mouth', '입 멈추기'],
+    ['face eyes nose mouth hair', '머리 멈추기'],
+  ]
   for (let step = 1; step <= 5; step += 1) {
     await expect(page.locator('#stepCounter')).toHaveText(`${step} / 5`)
+    await expect(page.locator('#gameCanvas')).toHaveAttribute(
+      'data-visible-parts',
+      stages[step - 1][0],
+    )
+    await expect(stopButton).toHaveAccessibleName(stages[step - 1][1])
     await stopButton.click()
     if (step < 5) await expect(stopButton).toBeEnabled()
   }

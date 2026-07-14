@@ -155,7 +155,16 @@ function startGame(mode) {
 
 function handleGameUpdate(snapshot, meta) {
   const nextCategory = CATEGORIES[Math.min(snapshot.lockedCount, CATEGORIES.length - 1)]
-  renderGameCard(elements.gameCanvas, snapshot.parts, { currentCategory: nextCategory.key })
+  const visibleCategories = CATEGORIES.slice(0, snapshot.visibleCount)
+  elements.gameCanvas.dataset.visibleParts = visibleCategories.map(({ key }) => key).join(' ')
+  elements.gameCanvas.setAttribute(
+    'aria-label',
+    `${visibleCategories.map(({ label }) => label).join(', ')}까지 보이는 친구 얼굴. 현재 ${nextCategory.label} 파츠가 바뀌고 있습니다.`,
+  )
+  renderGameCard(elements.gameCanvas, snapshot.parts, {
+    currentCategory: nextCategory.key,
+    visibleCount: snapshot.visibleCount,
+  })
 
   if (meta.reason === 'spin') return
 

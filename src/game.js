@@ -8,10 +8,15 @@ import {
 
 const LOCK_DURATION = 360
 
+export function getVisibleCount(lockedCount) {
+  return Math.min(Math.max(lockedCount + 1, 1), CATEGORIES.length)
+}
+
 export class FriendGame {
-  constructor({ onUpdate = () => {}, onComplete = () => {} } = {}) {
+  constructor({ onUpdate = () => {}, onComplete = () => {}, random = Math.random } = {}) {
     this.onUpdate = onUpdate
     this.onComplete = onComplete
+    this.random = random
     this.mode = null
     this.parts = null
     this.lockedCount = 0
@@ -28,7 +33,7 @@ export class FriendGame {
 
     this.stop()
     this.mode = mode
-    this.parts = createInitialParts(mode)
+    this.parts = createInitialParts(mode, this.random)
     this.lockedCount = 0
     this.busy = false
     this.running = true
@@ -50,18 +55,19 @@ export class FriendGame {
   tick(now) {
     if (!this.running) return
 
-    let changed = false
-    for (let index = this.lockedCount; index < CATEGORIES.length; index += 1) {
-      const category = CATEGORIES[index]
-      if (now >= this.nextChangeAt[category.key]) {
-        const previousId = this.parts[category.key].id
-        this.parts[category.key] = pickRandomPart(this.mode, category.key, previousId)
-        this.nextChangeAt[category.key] = now + category.interval
-        changed = true
-      }
+    const category = CATEGORIES[this.lockedCount]
+    if (category && now >= this.nextChangeAt[category.key]) {
+      const previousId = this.parts[category.key].id
+      this.parts[category.key] = pickRandomPart(
+        this.mode,
+        category.key,
+        previousId,
+        this.random,
+      )
+      this.nextChangeAt[category.key] = now + category.interval
+      this.emit('spin')
     }
 
-    if (changed) this.emit('spin')
     this.frameId = requestAnimationFrame(this.boundTick)
   }
 
@@ -99,6 +105,7 @@ export class FriendGame {
       parts: { ...this.parts },
       partIds: serializeParts(this.parts),
       lockedCount: this.lockedCount,
+      visibleCount: getVisibleCount(this.lockedCount),
       busy: this.busy,
       running: this.running,
     }
