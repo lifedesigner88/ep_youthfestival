@@ -157,7 +157,7 @@ function drawCharacter(ctx, parts, { visibleCount = CATEGORIES.length } = {}) {
 
   ctx.save()
   drawCharacterShadow(ctx)
-  drawShoulders(ctx, parts, skinTone)
+  drawShoulders(ctx, skinTone)
   if (visibleCount >= 5) drawHairBack(ctx, hairPart, hairTone)
   drawEars(ctx, skinTone)
   drawFace(ctx, facePart, skinTone)
@@ -179,10 +179,7 @@ function drawCharacterShadow(ctx) {
   ctx.restore()
 }
 
-function drawShoulders(ctx, parts, skinTone) {
-  const colorIndex = (parts.face.index + (parts.face.source === 'girl' ? 1 : 0)) % 4
-  const shirtColors = ['#6e91b4', '#d67b72', '#5e806e', '#d2a444']
-
+function drawShoulders(ctx, skinTone) {
   ctx.save()
   ctx.beginPath()
   ctx.moveTo(320, 760)
@@ -190,7 +187,7 @@ function drawShoulders(ctx, parts, skinTone) {
   ctx.lineTo(600, 640)
   ctx.bezierCurveTo(680, 648, 748, 690, 768, 760)
   ctx.closePath()
-  ctx.fillStyle = shirtColors[colorIndex]
+  ctx.fillStyle = '#6e91b4'
   ctx.fill()
   ctx.strokeStyle = COLORS.ink
   ctx.lineWidth = 11
