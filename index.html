@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f3e7c5" />
+    <meta
+      name="description"
+      content="얼굴 조각을 하나씩 멈춰 2000년대 초등학교 시절 친구를 만들어 보세요."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="공책 속 우리 반 친구 만들기" />
+    <meta
+      property="og:description"
+      content="나의 초등학교 시절엔 어떤 친구가 있었을까?"
+    />
+    <meta
+      property="og:image"
+      content="https://lifedesigner88.github.io/ep_youthfestival/og-image.png"
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="공책 속 우리 반 친구 만들기 게임 미리보기" />
+    <meta
+      property="og:url"
+      content="https://lifedesigner88.github.io/ep_youthfestival/"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>공책 속 우리 반 친구 만들기</title>
+  </head>
+  <body>
+    <div class="page-noise" aria-hidden="true"></div>
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="brand-button" id="homeButton" type="button" aria-label="처음 화면으로 이동">
+          <span class="brand-pencil" aria-hidden="true">✎</span>
+          <span>우리 반 친구 만들기</span>
+        </button>
+        <span class="demo-badge">TEAM DEMO · v0.1</span>
+      </header>
+
+      <main id="app" tabindex="-1">
+        <section class="view intro-view" id="introView" aria-labelledby="introTitle">
+          <div class="intro-copy">
+            <div class="year-sticker" aria-hidden="true">2000—2010</div>
+            <p class="eyebrow">공책 속 우리 반 친구 만들기</p>
+            <h1 id="introTitle">나의 초등학교 시절엔<br /><em>어떤 친구</em>가 있었을까?</h1>
+            <p class="intro-description">
+              기억 속 얼굴 조각을 하나씩 멈춰,<br class="mobile-break" />
+              그 시절 친구를 만들어 보세요.
+            </p>
+
+            <form id="modeForm" class="mode-form">
+              <fieldset>
+                <legend>어떤 친구를 떠올려볼까?</legend>
+                <div class="mode-options">
+                  <label class="mode-card">
+                    <input type="radio" name="mode" value="boy" />
+                    <span class="mode-icon" aria-hidden="true">⌒</span>
+                    <span class="mode-name">남학생 모습</span>
+                    <span class="mode-detail">파츠 5개씩</span>
+                  </label>
+                  <label class="mode-card">
+                    <input type="radio" name="mode" value="girl" />
+                    <span class="mode-icon mode-icon--ribbon" aria-hidden="true">∞</span>
+                    <span class="mode-name">여학생 모습</span>
+                    <span class="mode-detail">파츠 5개씩</span>
+                  </label>
+                  <label class="mode-card mode-card--mixed">
+                    <input type="radio" name="mode" value="mixed" checked />
+                    <span class="mode-icon" aria-hidden="true">✦</span>
+                    <span class="mode-name">랜덤으로 떠올리기</span>
+                    <span class="mode-detail">모든 파츠 섞기</span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <div class="combination-note">
+                <span aria-hidden="true">★</span>
+                최대 <strong>100,000</strong>개의 친구 조합
+              </div>
+
+              <button class="primary-button y2k-button" id="startButton" type="submit">
+                <span>그때로 돌아가기</span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </form>
+
+            <button class="text-button recent-button" id="recentButton" type="button" hidden>
+              최근에 만든 친구 다시 보기
+            </button>
+          </div>
+
+          <div class="intro-poster" aria-hidden="true">
+            <div class="tape tape--top"></div>
+            <div class="poster-window">
+              <div class="poster-face">
+                <span class="poster-hair"></span>
+                <span class="poster-eye poster-eye--left"></span>
+                <span class="poster-eye poster-eye--right"></span>
+                <span class="poster-mouth"></span>
+              </div>
+              <span class="doodle doodle--star">☆</span>
+              <span class="doodle doodle--heart">♡</span>
+              <span class="doodle doodle--scribble">친구?</span>
+            </div>
+            <p>그때 우리 반에는<br /><strong>이런 친구 있었지!</strong></p>
+            <div class="stamp">추억<br />소환</div>
+          </div>
+        </section>
+
+        <section class="view game-view" id="gameView" aria-labelledby="gameTitle" hidden>
+          <div class="game-heading">
+            <div>
+              <p class="eyebrow" id="gameModeLabel">랜덤 조합 중</p>
+              <h2 id="gameTitle">얼굴을 멈춰 주세요</h2>
+            </div>
+            <button class="text-button" id="quitGameButton" type="button">처음으로</button>
+          </div>
+
+          <ol class="progress-list" id="progressList" aria-label="친구 만들기 진행 단계">
+            <li data-category="face" aria-current="step">
+              <span>1</span><b>얼굴</b><small>진행 중</small>
+            </li>
+            <li data-category="eyes"><span>2</span><b>눈</b><small>대기</small></li>
+            <li data-category="nose"><span>3</span><b>코</b><small>대기</small></li>
+            <li data-category="mouth"><span>4</span><b>입</b><small>대기</small></li>
+            <li data-category="hair"><span>5</span><b>머리</b><small>대기</small></li>
+          </ol>
+
+          <div class="game-layout">
+            <div class="canvas-frame game-canvas-frame" id="gameCanvasFrame">
+              <div class="tape tape--small" aria-hidden="true"></div>
+              <canvas
+                id="gameCanvas"
+                width="1080"
+                height="1080"
+                role="img"
+                aria-label="빠르게 바뀌는 친구 얼굴 미리보기"
+              ></canvas>
+              <div class="lock-flash" aria-hidden="true">참 잘했어요!</div>
+            </div>
+
+            <div class="game-controls">
+              <p class="step-counter" id="stepCounter">1 / 5</p>
+              <p class="game-instruction" id="gameInstruction">
+                마음에 드는 순간 버튼을 눌러 주세요.
+              </p>
+              <button class="stop-button" id="stopButton" type="button">
+                <span class="stop-button__icon" aria-hidden="true"></span>
+                <span id="stopButtonLabel">얼굴 멈추기</span>
+              </button>
+              <p class="key-hint">키보드에서는 Space 또는 Enter</p>
+            </div>
+          </div>
+          <p class="sr-only" id="gameAnnouncement" aria-live="polite"></p>
+        </section>
+
+        <section class="view result-view" id="resultView" aria-labelledby="resultTitle" hidden>
+          <div class="result-heading">
+            <div>
+              <p class="eyebrow">그 시절, 이런 친구 있었지!</p>
+              <h2 id="resultTitle">친구가 완성됐어요</h2>
+            </div>
+            <span class="result-stamp" aria-hidden="true">완성!</span>
+          </div>
+
+          <div class="result-layout">
+            <div class="canvas-frame result-canvas-frame">
+              <canvas
+                id="resultCanvas"
+                width="1080"
+                height="1080"
+                role="img"
+                aria-label="완성된 초등학교 친구 카드"
+              ></canvas>
+            </div>
+
+            <div class="result-panel">
+              <div class="trait-card">
+                <span>오늘 만든 친구는</span>
+                <strong id="traitLabel">공책 낙서 장인</strong>
+              </div>
+
+              <div class="name-field">
+                <div class="field-heading">
+                  <label for="friendName">누구를 닮았나요?</label>
+                  <span id="nameCounter">0 / 12</span>
+                </div>
+                <input
+                  id="friendName"
+                  name="friendName"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  maxlength="24"
+                  placeholder="떠오르는 친구 이름을 적어 주세요"
+                  aria-describedby="nameHelp"
+                />
+                <p id="nameHelp">이름은 이미지에만 들어가며 저장되지 않아요.</p>
+              </div>
+
+              <button class="primary-button download-button" id="downloadButton" type="button" disabled>
+                <span aria-hidden="true">⇩</span>
+                <span>친구 카드 저장하기</span>
+              </button>
+              <p class="download-caption">1080 × 1080 PNG 이미지로 저장돼요.</p>
+
+              <div class="result-actions">
+                <button class="secondary-button" id="retryButton" type="button">
+                  다른 친구 만들기
+                </button>
+                <button class="text-button" id="backToIntroButton" type="button">
+                  모드 다시 고르기
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>2000—2010 우리의 초등학교 기억</span>
+        <span>팀 피드백용 데모</span>
+      </footer>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <dialog
+      class="save-dialog"
+      id="saveDialog"
+      aria-labelledby="saveDialogTitle"
+      aria-describedby="saveDialogDescription"
+    >
+      <button class="dialog-close" id="closeSaveDialog" type="button" aria-label="닫기">×</button>
+      <p class="eyebrow">모바일 저장 도우미</p>
+      <h2 id="saveDialogTitle">이미지를 길게 눌러 저장해 주세요</h2>
+      <p id="saveDialogDescription">인스타그램 안에서 바로 저장되지 않으면, 아래 이미지를 길게 눌러 사진에 저장할 수 있어요.</p>
+      <img id="savePreviewImage" alt="저장할 친구 카드 미리보기" />
+      <a class="primary-button" id="saveAgainLink" download="school-friend.png">한번 더 저장하기</a>
+    </dialog>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
