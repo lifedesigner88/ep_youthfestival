@@ -32,7 +32,7 @@ npm run preview
 `main` 브랜치에 push하면 GitHub Actions가 Vite 빌드 결과를 GitHub Pages에 배포합니다.
 
 - 저장소: `lifedesigner88/ep_youthfestival`
-- 예정 URL: `https://lifedesigner88.github.io/ep_youthfestival/`
+- 배포 URL: `https://lifedesigner88.github.io/ep_youthfestival/`
 
 ## 글꼴
 

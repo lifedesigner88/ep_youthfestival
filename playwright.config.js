@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const localBaseURL = 'http://127.0.0.1:4173/ep_youthfestival/'
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? localBaseURL
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -7,7 +10,7 @@ export default defineConfig({
   retries: 0,
   reporter: 'line',
   use: {
-    baseURL: 'http://127.0.0.1:4173/ep_youthfestival/',
+    baseURL,
     trace: 'retain-on-failure',
   },
   projects: [
@@ -41,10 +44,12 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 4173',
-    url: 'http://127.0.0.1:4173/ep_youthfestival/',
-    reuseExistingServer: true,
-    timeout: 30_000,
-  },
+  webServer: process.env.PLAYWRIGHT_BASE_URL
+    ? undefined
+    : {
+        command: 'npm run dev -- --host 127.0.0.1 --port 4173',
+        url: localBaseURL,
+        reuseExistingServer: true,
+        timeout: 30_000,
+      },
 })
