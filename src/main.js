@@ -23,7 +23,7 @@ const views = {
 const elements = {
   app: document.querySelector('#app'),
   homeButton: document.querySelector('#homeButton'),
-  modeForm: document.querySelector('#modeForm'),
+  modeButtons: [...document.querySelectorAll('[data-mode]')],
   recentButton: document.querySelector('#recentButton'),
   gameModeLabel: document.querySelector('#gameModeLabel'),
   gameTitle: document.querySelector('#gameTitle'),
@@ -60,9 +60,6 @@ let saveDialogUrl = null
 const localState = loadLocalState()
 if (isValidMode(localState.lastMode)) currentMode = localState.lastMode
 
-const modeInput = document.querySelector(`input[name="mode"][value="${currentMode}"]`)
-if (modeInput) modeInput.checked = true
-
 const fontReady = loadHandwritingFont()
 
 const game = new FriendGame({
@@ -73,10 +70,10 @@ const game = new FriendGame({
 initializeRecentResult()
 setView('intro', { focus: false })
 
-elements.modeForm.addEventListener('submit', (event) => {
-  event.preventDefault()
-  const formData = new FormData(elements.modeForm)
-  startGame(String(formData.get('mode') ?? MODES.MIXED))
+elements.modeButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    startGame(button.dataset.mode ?? MODES.MIXED)
+  })
 })
 
 elements.stopButton.addEventListener('click', () => {
@@ -324,8 +321,6 @@ function clearSaveDialogUrl() {
 function goToIntro() {
   game.stop()
   currentResult = null
-  const input = document.querySelector(`input[name="mode"][value="${currentMode}"]`)
-  if (input) input.checked = true
   setView('intro')
 }
 

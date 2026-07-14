@@ -53,28 +53,28 @@
               그 시절 친구를 만들어 보세요.
             </p>
 
-            <form id="modeForm" class="mode-form">
+            <div id="modePicker" class="mode-form">
               <fieldset>
-                <legend>어떤 친구를 떠올려볼까?</legend>
+                <legend>
+                  <span>어떤 친구를 떠올려볼까?</span>
+                  <small>카드를 누르면 바로 시작해요</small>
+                </legend>
                 <div class="mode-options">
-                  <label class="mode-card">
-                    <input type="radio" name="mode" value="boy" />
+                  <button class="mode-card" type="button" data-mode="boy">
                     <span class="mode-icon" aria-hidden="true">⌒</span>
                     <span class="mode-name">남학생 모습</span>
                     <span class="mode-detail">파츠 5개씩</span>
-                  </label>
-                  <label class="mode-card">
-                    <input type="radio" name="mode" value="girl" />
+                  </button>
+                  <button class="mode-card" type="button" data-mode="girl">
                     <span class="mode-icon mode-icon--ribbon" aria-hidden="true">∞</span>
                     <span class="mode-name">여학생 모습</span>
                     <span class="mode-detail">파츠 5개씩</span>
-                  </label>
-                  <label class="mode-card mode-card--mixed">
-                    <input type="radio" name="mode" value="mixed" checked />
+                  </button>
+                  <button class="mode-card mode-card--mixed" type="button" data-mode="mixed">
                     <span class="mode-icon" aria-hidden="true">✦</span>
                     <span class="mode-name">랜덤으로 떠올리기</span>
                     <span class="mode-detail">모든 파츠 섞기</span>
-                  </label>
+                  </button>
                 </div>
               </fieldset>
 
@@ -83,11 +83,7 @@
                 최대 <strong>100,000</strong>개의 친구 조합
               </div>
 
-              <button class="primary-button y2k-button" id="startButton" type="submit">
-                <span>그때로 돌아가기</span>
-                <span aria-hidden="true">→</span>
-              </button>
-            </form>
+            </div>
 
             <button class="text-button recent-button" id="recentButton" type="button" hidden>
               최근에 만든 친구 다시 보기
